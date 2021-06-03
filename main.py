@@ -33,7 +33,6 @@ locations = {
     "LB01": "Messehalle Löbau, Görlitzer Str. 2, 02708 Löbau",
     "LZ01": "Messe Leipzig, Messe-Allee 1, 04356 Leipzig",
     "MW01": "Mittweida über Simmel-Markt (ehem. EKZ), Schillerstraße 1, 09648 Mittweida",
-    "PL01": "IZ Plauen, Europaratstraße 5, 08523 Plauen",
     "PN01": "Aldi Pirna Jessen, Radeberger Str. 1h, 01796 Pirna",
     "RI01": "Sachsen-Arena Riesa, Am Sportzentrum 5, 01589 Riesa",
     "ZW01": "Stadthalle Zwickau, Bergmannsstraße 1, 08056 Zwickau"
