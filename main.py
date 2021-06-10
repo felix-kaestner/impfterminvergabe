@@ -3,25 +3,45 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
-
+import sys
+import os
+import pathlib
+import argparse
 from time import sleep
+from pprint import pprint
+import beepy
+
+parser = argparse.ArgumentParser(description='Auto-check the Impfterminvergabe-Website of Saxony.')
+
+parser.add_argument('--username', type=str, help='Username')
+parser.add_argument('--password', type=str, help='Password')
+parser.add_argument('--impfzentrum', type=str, help='Impfzentrum Name/ID')
+parser.add_argument('--partner_username', type=str, nargs='?', help='Partner username')
+parser.add_argument('--partner_password', type=str, nargs='?', help='Partner password')
+
+args = parser.parse_args()
 
 timeout = 30  # seconds
 
-username = "Axxx-xxxxx"
-password = "12345"
+username = args.username
+password = args.password
 
-partner_username = None
-partner_password = None
+partner_username = args.partner_username
+partner_password = args.partner_password
 
-path = "C:\chromedriver.exe"
+basepath = pathlib.Path(__file__).parent.absolute()
+path = None
+if os.name == 'nt':
+    path = str(basepath) + "\chromedriver.exe"
+elif os.name == "posix":
+    path = str(basepath) + "/chromedriver"
+else:
+    print("Unknown operating system " + os.name)
+    sys.exit(1)
 
 registration_url = "https://sachsen.impfterminvergabe.de/civ.public/start.html?oe=00.00.IM&mode=cc&cc_key=IOAktion"
 
-driver = webdriver.Chrome(path)
-driver.get(registration_url)
-
-locations = {
+all_locations = {
     "BG01": "Stadthalle Belgern, Mühlberger Str. 37, 04874 Belgern-Schildau",
     "BN01": "ehem. Aldi Markt Borna, Oststraße 3a, 04552 Borna",
     "BZ01": "Sporthalle am Flughafen, Macherstraße 146, 01917 Kamenz",
@@ -38,6 +58,15 @@ locations = {
     "ZW01": "Stadthalle Zwickau, Bergmannsstraße 1, 08056 Zwickau"
 }
 
+locations = {}
+for location_id in all_locations:
+    location_name = all_locations[location_id]
+    if args.impfzentrum in location_id or args.impfzentrum in location_name:
+        print(location_id + "->" + location_name )
+        locations[location_id] = location_name
+
+driver = webdriver.Chrome(path)
+driver.get(registration_url)
 
 def get_element(locator):
     return WebDriverWait(driver, timeout).until(expected_conditions.presence_of_element_located(locator))
@@ -117,6 +146,8 @@ def query_location(value, name):
         navigate_back()
     except:
         print(f"    Open appointments at: {name}")
+        for i in range(1, 10):
+            beepy.beep(sound=8)
         sleep(60 * 24)
 
 
