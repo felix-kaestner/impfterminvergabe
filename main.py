@@ -9,7 +9,6 @@ import pathlib
 import argparse
 from time import sleep
 from pprint import pprint
-import beepy
 
 parser = argparse.ArgumentParser(description='Auto-check the Impfterminvergabe-Website of Saxony.')
 
@@ -147,15 +146,15 @@ def query_location(value, name):
         navigate_back()
     except:
         if(get_element((By.XPATH, '//*[text() = "Internal Server Error - Write"]'))):
-            print(f"    ERROR")
+            print(f"    ERROR. Restarting browser window")
             driver.quit()
+            driver.close()
+            driver = None
             driver = webdriver.Chrome(path)
             driver.get(registration_url)
             main
         else:
             print(f"    Open appointments at: {name}")
-            for i in range(1, 10):
-                beepy.beep(sound=8)
             sleep(60 * 24)
 
 

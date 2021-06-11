@@ -16,7 +16,7 @@ decline and complete the procedure manually.
     Make sure to save the `username` ("Vorgangskennung") and `password` of your account. You might also want to generate a second user, if you want to get an appointment together with someone other.
 
 
-2. Make sure you have [Google Chrome](https://www.google.com/intl/de_de/chrome/) (or [Chromium](https://www.chromium.org/)) installed on your machine. Get the exact version number of Chrome installed on your machine. Simple click the three dots in the upper right corner of Chrome and select `Help > About`. You should find a version number like `Version 90.0.4430.212 (Offizieller Build) (64-Bit)`.
+2. Make sure you have [Google Chrome](https://www.google.com/intl/de_de/chrome/) (or [Chromium](https://www.chromium.org/)) installed on your machine. Get the exact version number of Chrome installed on your machine. Simple click the three dots in the upper right corner of Chrome and select `Help > About`. You should find a version number like `Version 90.0.4430.212 (Offizieller Build) (64-Bit)`. You can try to use the given `chromedriver`-files, but they probably won't work for you.
 
 
 3. Download the appropriate [Chrome Webdriver](https://sites.google.com/a/chromium.org/chromedriver/downloads) for your Chrome version and operating system. Afterwards, extract the `chromedriver` (or `chromedriver.exe`) file from the zip archive.
@@ -28,7 +28,6 @@ decline and complete the procedure manually.
     $ python3 -m venv env
     $ source ./env/bin/activate # or .\env\Scripts\activate on Windows
     $ pip install selenium
-    $ pip install beepy
     ```
    Otherwise, just use the integration of an IDE like [PyCharm](https://www.jetbrains.com/de-de/pycharm/) to get you started.
 
