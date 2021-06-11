@@ -129,6 +129,7 @@ def open_location_dropdown():
 
 
 def query_location(value, name):
+    global driver
     open_location_dropdown()
 
     option = get_element((By.CSS_SELECTOR, f"li[id$=\"{value}\"]"))
@@ -145,10 +146,17 @@ def query_location(value, name):
         print(f"    No appointments at: {name}")
         navigate_back()
     except:
-        print(f"    Open appointments at: {name}")
-        for i in range(1, 10):
-            beepy.beep(sound=8)
-        sleep(60 * 24)
+        if(get_element((By.XPATH, '//*[text() = "Internal Server Error - Write"]'))):
+            print(f"    ERROR")
+            driver.quit()
+            driver = webdriver.Chrome(path)
+            driver.get(registration_url)
+            main
+        else:
+            print(f"    Open appointments at: {name}")
+            for i in range(1, 10):
+                beepy.beep(sound=8)
+            sleep(60 * 24)
 
 
 def main():
