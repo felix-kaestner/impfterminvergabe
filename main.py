@@ -13,6 +13,7 @@ import time
 from pprint import pprint
 import beepy
 import _thread
+from pprint import pprint
 
 parser = argparse.ArgumentParser(description='Auto-check the Impfterminvergabe-Website of Saxony.')
 
@@ -95,7 +96,6 @@ def check_exists_by_id(item_id):
     if item_id in html:
         return True
     return False
-
 
 def get_element(locator):
     global kill_threads
@@ -198,7 +198,6 @@ def query_location(value, name):
                 main
         except:
             open_appointments(name)
-
 
 def main():
     page_1()
