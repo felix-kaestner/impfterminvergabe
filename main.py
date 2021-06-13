@@ -169,6 +169,7 @@ def open_location_dropdown():
 
 def open_appointments(name):
     print(f"    Open appointments at: {name}")
+    driver.switch_to.window(driver.current_window_handle)
     for i in range(0, 10):
         beepy.beep(sound='coin')
     sys.exit(0)
