@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(description='Auto-check the Impfterminvergabe-W
 
 parser.add_argument('--username', type=str, help='Username')
 parser.add_argument('--password', type=str, help='Password')
-parser.add_argument('--impfzentrum', type=str, help='Impfzentrum Name/ID')
+parser.add_argument('--impfzentrum', type=str, nargs="+", action="append", help='Impfzentrum Name/ID')
 parser.add_argument('--partner_username', type=str, nargs='?', help='Partner username')
 parser.add_argument('--partner_password', type=str, nargs='?', help='Partner password')
 
@@ -60,9 +60,10 @@ all_locations = {
 locations = {}
 for location_id in all_locations:
     location_name = all_locations[location_id]
-    if args.impfzentrum in location_id or args.impfzentrum in location_name:
-        print(location_id + "->" + location_name )
-        locations[location_id] = location_name
+    for this_impfzentrum in args.impfzentrum[0]:
+        if this_impfzentrum in location_id or this_impfzentrum in location_name:
+            print(location_id + "->" + location_name )
+            locations[location_id] = location_name
 
 driver = webdriver.Chrome(path)
 driver.get(registration_url)
