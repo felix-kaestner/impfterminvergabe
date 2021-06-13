@@ -3,12 +3,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException        
 import sys
 import os
 import pathlib
 import argparse
 from time import sleep
 from pprint import pprint
+import beepy
 
 parser = argparse.ArgumentParser(description='Auto-check the Impfterminvergabe-Website of Saxony.')
 
@@ -58,15 +60,25 @@ all_locations = {
 }
 
 locations = {}
-for location_id in all_locations:
-    location_name = all_locations[location_id]
-    for this_impfzentrum in args.impfzentrum[0]:
-        if this_impfzentrum in location_id or this_impfzentrum in location_name:
-            print(location_id + "->" + location_name )
-            locations[location_id] = location_name
+if args.impfzentrum is not None:
+    for location_id in all_locations:
+        location_name = all_locations[location_id]
+        for this_impfzentrum in args.impfzentrum[0]:
+            if this_impfzentrum in location_id or this_impfzentrum in location_name:
+                print(location_id + "->" + location_name )
+                locations[location_id] = location_name
+else:
+    locations = all_locations
 
 driver = webdriver.Chrome(path)
 driver.get(registration_url)
+
+def check_exists_by_id(item_id):
+    html = driver.page_source
+    print(html)
+    if item_id in html:
+        return True
+    return False
 
 def get_element(locator):
     return WebDriverWait(driver, timeout).until(expected_conditions.presence_of_element_located(locator))
@@ -127,6 +139,12 @@ def open_location_dropdown():
     action.click()
     action.perform()
 
+def open_appointments(name):
+    print(f"    Open appointments at: {name}")
+    for i in range(0, 10):
+        beepy.beep(sound='coin')
+    sleep(60 * 24)
+    sys.exit(0)
 
 def query_location(value, name):
     global driver
@@ -146,17 +164,17 @@ def query_location(value, name):
         print(f"    No appointments at: {name}")
         navigate_back()
     except:
-        if(get_element((By.XPATH, '//*[text() = "Internal Server Error - Write"]'))):
-            print(f"    ERROR. Restarting browser window")
-            driver.quit()
-            driver.close()
-            driver = None
-            driver = webdriver.Chrome(path)
-            driver.get(registration_url)
-            main
-        else:
-            print(f"    Open appointments at: {name}")
-            sleep(60 * 24)
+        try:
+            if(get_element((By.XPATH, '//*[text() = "Internal Server Error - Write"]'))):
+                print(f"    ERROR. Restarting browser window")
+                driver.quit()
+                driver.close()
+                driver = None
+                driver = webdriver.Chrome(path)
+                driver.get(registration_url)
+                main
+        except:
+            open_appointments(name)
 
 
 def main():
