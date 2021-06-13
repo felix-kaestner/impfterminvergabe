@@ -97,9 +97,16 @@ def check_exists_by_id(item_id):
         return True
     return False
 
-def get_element(locator):
+def get_element_short_timeout(locator):
     global kill_threads
     countdown_thread = _thread.start_new_thread(countdown,(short_timeout,))
+    item = WebDriverWait(driver, short_timeout).until(expected_conditions.presence_of_element_located(locator))
+    kill_threads = True
+    return item
+
+def get_element(locator):
+    global kill_threads
+    countdown_thread = _thread.start_new_thread(countdown,(timeout,))
     item = WebDriverWait(driver, short_timeout).until(expected_conditions.presence_of_element_located(locator))
     kill_threads = True
     return item
@@ -179,7 +186,7 @@ def query_location(value, name):
 
     # noinspection PyBroadException
     try:
-        get_element((By.XPATH, '//*[text() = "Aufgrund der aktuellen Auslastung der Impfzentren und der verfügbaren '
+        get_element_short_timeout((By.XPATH, '//*[text() = "Aufgrund der aktuellen Auslastung der Impfzentren und der verfügbaren '
                                'Impfstoffmenge können wir Ihnen leider keinen Termin anbieten. Bitte versuchen Sie es '
                                'in ein paar Tagen erneut."]'))
         print(f"    No appointments at: {name}")
@@ -188,7 +195,7 @@ def query_location(value, name):
         try:
             print(f"Checking for server errors. This may take up to " + timeout + " seconds")
 
-            if(get_element((By.XPATH, '//*[text() = "Internal Server Error - Write"]'))):
+            if get_element_short_timeout((By.XPATH, '//*[text() = "Internal Server Error - Write"]')):
                 print(f"    ERROR. Restarting browser window")
                 driver.quit()
                 driver.close()
