@@ -22,23 +22,7 @@ decline and complete the procedure manually.
 3. Download the appropriate [Chrome Webdriver](https://sites.google.com/a/chromium.org/chromedriver/downloads) for your Chrome version and operating system. Afterwards, extract the `chromedriver` (or `chromedriver.exe`) file from the zip archive.
 
 
-4. Fill in the information inside [main.py](main.py) on line 11 - 17.
-
-    Substitute your `username` and `password` (optionally your partner account, otherwise leave as is) and specify the absolute `path` to the chromedriver executable from Step 3. 
-
-    ```python
-    ...
-    username = "Axxx-xxxxx"
-    password = "12345"
-    
-    partner_username = None
-    partner_password = None
-    
-    path = "C:\chromedriver.exe"
-    ...
-    ```
-   
-5. Create a virtual environment using [virtualenv](https://github.com/pypa/virtualenv) and install the [selenium](https://www.selenium.dev/) package.
+4. Create a virtual environment using [virtualenv](https://github.com/pypa/virtualenv) and install the [selenium](https://www.selenium.dev/) package.
 
     ```bash
     $ python3 -m venv env
@@ -48,10 +32,11 @@ decline and complete the procedure manually.
    Otherwise, just use the integration of an IDE like [PyCharm](https://www.jetbrains.com/de-de/pycharm/) to get you started.
 
 
-6. Run the script.
+5. Run the script.
 
     ```bash
-    $ python3 main.py
+    $ python3 main.py --username="hallo" --password="welt" --impfzentrum="Dresden"
+    $ python3 main.py --username="hallo" --password="welt" --impfzentrum "Dresden" "Belgern"
     ```
    
 _Optional_
