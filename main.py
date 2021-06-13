@@ -99,7 +99,7 @@ def check_exists_by_id(item_id):
 
 def get_element(locator):
     global kill_threads
-    countdown_thread = _thread.start_new_thread(countdown,(timeout,))
+    countdown_thread = _thread.start_new_thread(countdown,(short_timeout,))
     item = WebDriverWait(driver, short_timeout).until(expected_conditions.presence_of_element_located(locator))
     kill_threads = True
     return item
