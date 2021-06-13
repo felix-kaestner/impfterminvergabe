@@ -27,7 +27,7 @@ decline and complete the procedure manually.
     ```bash
     $ python3 -m venv env
     $ source ./env/bin/activate # or .\env\Scripts\activate on Windows
-    $ pip install selenium
+    $ pip install selenium beepy
     ```
    Otherwise, just use the integration of an IDE like [PyCharm](https://www.jetbrains.com/de-de/pycharm/) to get you started.
 
