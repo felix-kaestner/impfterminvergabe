@@ -171,7 +171,6 @@ def open_appointments(name):
     print(f"    Open appointments at: {name}")
     for i in range(0, 10):
         beepy.beep(sound='coin')
-    sleep(60 * 24)
     sys.exit(0)
 
 def query_location(value, name):
