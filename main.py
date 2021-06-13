@@ -9,8 +9,10 @@ import os
 import pathlib
 import argparse
 from time import sleep
+import time
 from pprint import pprint
 import beepy
+import _thread
 
 parser = argparse.ArgumentParser(description='Auto-check the Impfterminvergabe-Website of Saxony.')
 
@@ -23,6 +25,8 @@ parser.add_argument('--partner_password', type=str, nargs='?', help='Partner pas
 args = parser.parse_args()
 
 timeout = 30  # seconds
+short_timeout = 10  # seconds
+kill_threads = False
 
 username = args.username
 password = args.password
@@ -70,6 +74,18 @@ if args.impfzentrum is not None:
 else:
     locations = all_locations
 
+def countdown (t):
+    global kill_threads
+    while t:
+        if kill_threads:
+            kill_threads = False
+            _thread.exit()
+        mins, secs = divmod(t, 60)
+        timeformat = 'This operation may take time. ETA: {:02d}:{:02d}'.format(mins, secs)
+        print(timeformat, end='\r')
+        time.sleep(1)
+        t -= 1
+
 driver = webdriver.Chrome(path)
 driver.get(registration_url)
 
@@ -80,8 +96,13 @@ def check_exists_by_id(item_id):
         return True
     return False
 
+
 def get_element(locator):
-    return WebDriverWait(driver, timeout).until(expected_conditions.presence_of_element_located(locator))
+    global kill_threads
+    countdown_thread = _thread.start_new_thread(countdown,(timeout,))
+    item = WebDriverWait(driver, short_timeout).until(expected_conditions.presence_of_element_located(locator))
+    kill_threads = True
+    return item
 
 
 def navigate_next():
@@ -165,6 +186,8 @@ def query_location(value, name):
         navigate_back()
     except:
         try:
+            print(f"Checking for server errors. This may take up to " + timeout + " seconds")
+
             if(get_element((By.XPATH, '//*[text() = "Internal Server Error - Write"]'))):
                 print(f"    ERROR. Restarting browser window")
                 driver.quit()
@@ -181,7 +204,6 @@ def main():
     page_1()
     page_2()
     page_3()
-
 
 if __name__ == '__main__':
     main()
