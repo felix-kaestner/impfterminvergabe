@@ -27,8 +27,8 @@ parser.add_argument('--partner_password', type=str, nargs='?', help='Partner pas
 
 args = parser.parse_args()
 
-timeout = 40  # seconds
-short_timeout = 30  # seconds
+timeout = 60  # seconds
+short_timeout = 40  # seconds
 kill_threads = False
 
 username = args.username
