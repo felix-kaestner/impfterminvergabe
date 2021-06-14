@@ -14,6 +14,8 @@ from pprint import pprint
 import beepy
 import _thread
 from pprint import pprint
+import easygui
+import os.path
 
 parser = argparse.ArgumentParser(description='Auto-check the Impfterminvergabe-Website of Saxony.')
 
@@ -25,20 +27,41 @@ parser.add_argument('--partner_password', type=str, nargs='?', help='Partner pas
 
 args = parser.parse_args()
 
-timeout = 30  # seconds
-short_timeout = 10  # seconds
+timeout = 40  # seconds
+short_timeout = 30  # seconds
 kill_threads = False
 
 username = args.username
+if username is None:
+    username = ""
+    while username == "":
+        username = easygui.enterbox("Please enter your username")
 password = args.password
+if password is None:
+    password = ""
+    while password == "":
+        password = easygui.passwordbox("Please enter your password")
 
 partner_username = args.partner_username
+if partner_username is None:
+    partner_username = easygui.enterbox("Please enter your partner username (can be empty)")
+    if partner_username == "":
+        partner_username = None
 partner_password = args.partner_password
+if partner_password is None:
+    partner_password = easygui.enterbox("Please enter your partner password (can be empty)")
+    if partner_password == "":
+        partner_password = None
+        print(partner_password)
 
 basepath = pathlib.Path(__file__).parent.absolute()
 path = None
+
 if os.name == 'nt':
-    path = str(basepath) + "\chromedriver.exe"
+    path = str(basepath) + "/chromedriver.exe"
+    if not os.path.isfile(path) :
+        wd = sys._MEIPASS
+        path = os.path.join(wd, "chromedriver.exe")
 elif os.name == "posix":
     path = str(basepath) + "/chromedriver"
 else:
@@ -70,10 +93,22 @@ if args.impfzentrum is not None:
         location_name = all_locations[location_id]
         for this_impfzentrum in args.impfzentrum[0]:
             if this_impfzentrum in location_id or this_impfzentrum in location_name:
-                print(location_id + "->" + location_name )
                 locations[location_id] = location_name
 else:
-    locations = all_locations
+    if os.name == 'nt':
+        chosen_location_name = None
+        while chosen_location_name is None or chosen_location_name == "":
+            chosen_location_name = easygui.enterbox("Please enter your location name")
+        if chosen_location_name is not None:
+            for location_id in all_locations:
+                location_name = all_locations[location_id]
+                if chosen_location_name in location_id or chosen_location_name in location_name:
+                    locations[location_id] = location_name
+    else:
+        locations = all_locations
+
+driver = webdriver.Chrome(path)
+driver.get(registration_url)
 
 def countdown (t):
     global kill_threads
@@ -86,9 +121,6 @@ def countdown (t):
         print(timeformat, end='\r')
         time.sleep(1)
         t -= 1
-
-driver = webdriver.Chrome(path)
-driver.get(registration_url)
 
 def check_exists_by_id(item_id):
     html = driver.page_source
@@ -125,6 +157,7 @@ def page_1():
     password_input = get_element((By.ID, "gwt-uid-5"))
 
     username_input.send_keys(username)
+    sleep(2)
     password_input.send_keys(password)
 
     navigate_next()
@@ -151,11 +184,14 @@ def fill_partner():
     option_label = get_element((By.CSS_SELECTOR, "#gwt-uid-44 + label"))
     option_label.click()
 
-    username_input = get_element((By.ID, "gwt-uid-55"))
-    password_input = get_element((By.ID, "gwt-uid-57"))
+    try:
+        username_input = get_element((By.ID, "gwt-uid-55"))
+        password_input = get_element((By.ID, "gwt-uid-57"))
 
-    username_input.send_keys(partner_username)
-    password_input.send_keys(partner_password)
+        username_input.send_keys(partner_username)
+        password_input.send_keys(partner_password)
+    except:
+        print(f"ERROR")
 
 
 def open_location_dropdown():
