@@ -38,11 +38,10 @@ decline and complete the procedure manually.
     $ python3 main.py --username="hallo" --password="welt" --impfzentrum="Dresden"
     $ python3 main.py --username="hallo" --password="welt" --impfzentrum "Dresden" "Belgern"
     ```
+## Windows Version
+
+Try the main.exe on Windows, though I cannot properly test it, it should work.
    
-_Optional_
-
-If you do not want a vaccination appointment in some venues available, simply delete the corresponding entries from the `locations` dictionary (line 24-40).
-
 ## Legal Disclaimer
 
 ```markdown
