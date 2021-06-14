@@ -11,11 +11,11 @@ import argparse
 from time import sleep
 import time
 from pprint import pprint
-import beepy
 import _thread
 from pprint import pprint
 import easygui
 import os.path
+from simplebeep import beep
 
 parser = argparse.ArgumentParser(description='Auto-check the Impfterminvergabe-Website of Saxony.')
 
@@ -43,16 +43,15 @@ if password is None:
         password = easygui.passwordbox("Please enter your password")
 
 partner_username = args.partner_username
-if partner_username is None:
+if partner_username is None and os.name == "nt":
     partner_username = easygui.enterbox("Please enter your partner username (can be empty)")
     if partner_username == "":
         partner_username = None
 partner_password = args.partner_password
-if partner_password is None:
+if partner_password is None and os.name == "nt":
     partner_password = easygui.enterbox("Please enter your partner password (can be empty)")
     if partner_password == "":
         partner_password = None
-        print(partner_password)
 
 basepath = pathlib.Path(__file__).parent.absolute()
 path = None
@@ -124,7 +123,6 @@ def countdown (t):
 
 def check_exists_by_id(item_id):
     html = driver.page_source
-    print(html)
     if item_id in html:
         return True
     return False
@@ -206,8 +204,10 @@ def open_location_dropdown():
 def open_appointments(name):
     print(f"    Open appointments at: {name}")
     driver.switch_to.window(driver.current_window_handle)
-    for i in range(0, 10):
-        beepy.beep(sound='coin')
+    for i in range(0, 5):
+        beep(1, 1)
+        sleep(1)
+    sleep(3600)
     sys.exit(0)
 
 def query_location(value, name):
