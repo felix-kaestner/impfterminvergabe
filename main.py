@@ -3,12 +3,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException        
 import sys
 import os
 import pathlib
 import argparse
 from time import sleep
+import time
 from pprint import pprint
+import _thread
+from pprint import pprint
+import easygui
+import os.path
+from simplebeep import beep
 
 parser = argparse.ArgumentParser(description='Auto-check the Impfterminvergabe-Website of Saxony.')
 
@@ -20,18 +27,40 @@ parser.add_argument('--partner_password', type=str, nargs='?', help='Partner pas
 
 args = parser.parse_args()
 
-timeout = 30  # seconds
+timeout = 60  # seconds
+short_timeout = 40  # seconds
+kill_threads = False
 
 username = args.username
+if username is None:
+    username = ""
+    while username == "":
+        username = easygui.enterbox("Please enter your username")
 password = args.password
+if password is None:
+    password = ""
+    while password == "":
+        password = easygui.passwordbox("Please enter your password")
 
 partner_username = args.partner_username
+if partner_username is None and os.name == "nt":
+    partner_username = easygui.enterbox("Please enter your partner username (can be empty)")
+    if partner_username == "":
+        partner_username = None
 partner_password = args.partner_password
+if partner_password is None and os.name == "nt":
+    partner_password = easygui.enterbox("Please enter your partner password (can be empty)")
+    if partner_password == "":
+        partner_password = None
 
 basepath = pathlib.Path(__file__).parent.absolute()
 path = None
+
 if os.name == 'nt':
-    path = str(basepath) + "\chromedriver.exe"
+    path = str(basepath) + "/chromedriver.exe"
+    if not os.path.isfile(path) :
+        wd = sys._MEIPASS
+        path = os.path.join(wd, "chromedriver.exe")
 elif os.name == "posix":
     path = str(basepath) + "/chromedriver"
 else:
@@ -58,18 +87,59 @@ all_locations = {
 }
 
 locations = {}
-for location_id in all_locations:
-    location_name = all_locations[location_id]
-    for this_impfzentrum in args.impfzentrum[0]:
-        if this_impfzentrum in location_id or this_impfzentrum in location_name:
-            print(location_id + "->" + location_name )
-            locations[location_id] = location_name
+if args.impfzentrum is not None:
+    for location_id in all_locations:
+        location_name = all_locations[location_id]
+        for this_impfzentrum in args.impfzentrum[0]:
+            if this_impfzentrum in location_id or this_impfzentrum in location_name:
+                locations[location_id] = location_name
+else:
+    if os.name == 'nt':
+        chosen_location_name = None
+        while chosen_location_name is None or chosen_location_name == "":
+            chosen_location_name = easygui.enterbox("Please enter your location name")
+        if chosen_location_name is not None:
+            for location_id in all_locations:
+                location_name = all_locations[location_id]
+                if chosen_location_name in location_id or chosen_location_name in location_name:
+                    locations[location_id] = location_name
+    else:
+        locations = all_locations
 
 driver = webdriver.Chrome(path)
 driver.get(registration_url)
 
+def countdown (t):
+    global kill_threads
+    while t:
+        if kill_threads:
+            kill_threads = False
+            _thread.exit()
+        mins, secs = divmod(t, 60)
+        timeformat = 'This operation may take time. ETA: {:02d}:{:02d}'.format(mins, secs)
+        print(timeformat, end='\r')
+        time.sleep(1)
+        t -= 1
+
+def check_exists_by_id(item_id):
+    html = driver.page_source
+    if item_id in html:
+        return True
+    return False
+
+def get_element_short_timeout(locator):
+    global kill_threads
+    countdown_thread = _thread.start_new_thread(countdown,(short_timeout,))
+    item = WebDriverWait(driver, short_timeout).until(expected_conditions.presence_of_element_located(locator))
+    kill_threads = True
+    return item
+
 def get_element(locator):
-    return WebDriverWait(driver, timeout).until(expected_conditions.presence_of_element_located(locator))
+    global kill_threads
+    countdown_thread = _thread.start_new_thread(countdown,(timeout,))
+    item = WebDriverWait(driver, short_timeout).until(expected_conditions.presence_of_element_located(locator))
+    kill_threads = True
+    return item
 
 
 def navigate_next():
@@ -85,6 +155,7 @@ def page_1():
     password_input = get_element((By.ID, "gwt-uid-5"))
 
     username_input.send_keys(username)
+    sleep(2)
     password_input.send_keys(password)
 
     navigate_next()
@@ -111,11 +182,14 @@ def fill_partner():
     option_label = get_element((By.CSS_SELECTOR, "#gwt-uid-44 + label"))
     option_label.click()
 
-    username_input = get_element((By.ID, "gwt-uid-55"))
-    password_input = get_element((By.ID, "gwt-uid-57"))
+    try:
+        username_input = get_element((By.ID, "gwt-uid-55"))
+        password_input = get_element((By.ID, "gwt-uid-57"))
 
-    username_input.send_keys(partner_username)
-    password_input.send_keys(partner_password)
+        username_input.send_keys(partner_username)
+        password_input.send_keys(partner_password)
+    except:
+        print(f"ERROR")
 
 
 def open_location_dropdown():
@@ -127,6 +201,14 @@ def open_location_dropdown():
     action.click()
     action.perform()
 
+def open_appointments(name):
+    print(f"    Open appointments at: {name}")
+    driver.switch_to.window(driver.current_window_handle)
+    for i in range(0, 5):
+        beep(1, 1)
+        sleep(1)
+    sleep(3600)
+    sys.exit(0)
 
 def query_location(value, name):
     global driver
@@ -140,30 +222,30 @@ def query_location(value, name):
 
     # noinspection PyBroadException
     try:
-        get_element((By.XPATH, '//*[text() = "Aufgrund der aktuellen Auslastung der Impfzentren und der verfügbaren '
+        get_element_short_timeout((By.XPATH, '//*[text() = "Aufgrund der aktuellen Auslastung der Impfzentren und der verfügbaren '
                                'Impfstoffmenge können wir Ihnen leider keinen Termin anbieten. Bitte versuchen Sie es '
                                'in ein paar Tagen erneut."]'))
         print(f"    No appointments at: {name}")
         navigate_back()
     except:
-        if(get_element((By.XPATH, '//*[text() = "Internal Server Error - Write"]'))):
-            print(f"    ERROR. Restarting browser window")
-            driver.quit()
-            driver.close()
-            driver = None
-            driver = webdriver.Chrome(path)
-            driver.get(registration_url)
-            main
-        else:
-            print(f"    Open appointments at: {name}")
-            sleep(60 * 24)
+        try:
+            print(f"Checking for server errors. This may take up to " + timeout + " seconds")
 
+            if get_element_short_timeout((By.XPATH, '//*[text() = "Internal Server Error - Write"]')):
+                print(f"    ERROR. Restarting browser window")
+                driver.quit()
+                driver.close()
+                driver = None
+                driver = webdriver.Chrome(path)
+                driver.get(registration_url)
+                main
+        except:
+            open_appointments(name)
 
 def main():
     page_1()
     page_2()
     page_3()
-
 
 if __name__ == '__main__':
     main()
